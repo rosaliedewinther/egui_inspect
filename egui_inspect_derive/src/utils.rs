@@ -15,9 +15,9 @@ pub fn get_path_str(type_path: &Type) -> Option<String> {
             if let Some(name) = ident {
                 return Some(name.to_string());
             }
-            return None;
+            None
         }
-        Reference(type_ref) => get_path_str(&*type_ref.elem),
+        Reference(type_ref) => get_path_str(&type_ref.elem),
         _ => Some("".to_string()),
     }
 }
@@ -30,9 +30,9 @@ pub(crate) fn get_default_function_call(field: &Field, mutable: bool, attrs: &At
         None => name.clone().unwrap().to_string(),
     };
 
-    return if mutable {
+    if mutable {
         quote_spanned! {field.span() => {egui_inspect::EguiInspect::inspect_mut(&mut self.#name, &#name_str, ui);}}
     } else {
         quote_spanned! {field.span() => {egui_inspect::EguiInspect::inspect(&self.#name, &#name_str, ui);}}
-    };
+    }
 }

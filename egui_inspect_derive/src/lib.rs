@@ -94,12 +94,12 @@ fn inspect_struct(data: &Data, _struct_name: &Ident, mutable: bool) -> TokenStre
             Fields::Named(ref fields) => handle_named_fields(fields, mutable),
             Fields::Unnamed(ref fields) => {
                 let mut recurse = Vec::new();
-                for (i,_) in fields.unnamed.iter().enumerate() {
+                for (i, _) in fields.unnamed.iter().enumerate() {
                     let tuple_index = Index::from(i);
                     let name = format!("Field {i}");
                     let ref_str = if mutable { quote!(&mut) } else { quote!(&) };
                     recurse.push(quote! { egui_inspect::EguiInspect::inspect(#ref_str self.#tuple_index, #name, ui);});
-                };
+                }
 
                 let result = quote! {
                     ui.strong(label);
@@ -107,7 +107,7 @@ fn inspect_struct(data: &Data, _struct_name: &Ident, mutable: bool) -> TokenStre
                 };
                 result
             }
-            _ => unimplemented!("Unit cannot be inspected !")
+            _ => unimplemented!("Unit cannot be inspected !"),
         },
         Data::Enum(_) | Data::Union(_) => unimplemented!("Enums and Unions are not yet supported"),
     }
@@ -123,15 +123,15 @@ fn handle_named_fields(fields: &FieldsNamed, mutable: bool) -> TokenStream {
 
         let mutable = mutable && !attr.no_edit;
 
-        if let Some(ts) = handle_custom_func(&f, mutable, &attr) {
+        if let Some(ts) = handle_custom_func(f, mutable, &attr) {
             return ts;
         }
 
-        if let Some(ts) = internal_paths::try_handle_internal_path(&f, mutable, &attr) {
+        if let Some(ts) = internal_paths::try_handle_internal_path(f, mutable, &attr) {
             return ts;
         }
 
-        return utils::get_default_function_call(&f, mutable, &attr);
+        utils::get_default_function_call(f, mutable, &attr)
     });
     quote! {
         ui.strong(label);
@@ -150,22 +150,22 @@ fn handle_custom_func(field: &Field, mutable: bool, attrs: &AttributeArgs) -> Op
     if mutable && !attrs.no_edit && attrs.custom_func_mut.is_some() {
         let custom_func_mut = attrs.custom_func_mut.as_ref().unwrap();
         let ident = syn::Path::from_string(custom_func_mut)
-            .expect(format!("Could not find function: {}", custom_func_mut).as_str());
+            .unwrap_or_else(|_| panic!("Could not find function: {}", custom_func_mut));
         return Some(quote_spanned! { field.span() => {
                 #ident(&mut self.#name, &#name_str, ui);
             }
         });
     }
 
-    if (!mutable || (mutable && attrs.no_edit)) && attrs.custom_func.is_some() {
+    if (attrs.no_edit || !mutable) && attrs.custom_func.is_some() {
         let custom_func = attrs.custom_func.as_ref().unwrap();
         let ident = syn::Path::from_string(custom_func)
-            .expect(format!("Could not find function: {}", custom_func).as_str());
+            .unwrap_or_else(|_| panic!("Could not find function: {}", custom_func));
         return Some(quote_spanned! { field.span() => {
                 #ident(&self.#name, &#name_str, ui);
             }
         });
     }
 
-    return None;
+    None
 }

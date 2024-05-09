@@ -14,6 +14,8 @@ struct MyApp {
     unsigned32: u32,
     #[inspect(hide)]
     _skipped: bool,
+    #[inspect(custom_func_mut = "custom_bool_inspect")]
+    custom_inspect: bool,
     #[inspect(no_edit)]
     strings: Vec<String>,
     #[inspect(no_edit)]
@@ -49,6 +51,7 @@ impl Default for MyApp {
                 y: 20.0,
                 z: 30.0,
             },
+            custom_inspect: true,
         }
     }
 }
@@ -67,12 +70,12 @@ struct Vector {
 }
 
 fn custom_bool_inspect(boolean: &mut bool, label: &'static str, ui: &mut egui::Ui) {
-    ui.label("C'EST LA GIGA FONCTION CUSTOM WÉ");
-    boolean.inspect(label, ui);
+    ui.label("A custom inspect function");
+    boolean.inspect_mut(label, ui);
 }
 
 impl eframe::App for MyApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             self.inspect_mut("Test App", ui);
             // self.inspect("Test App", ui);
@@ -88,6 +91,6 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "My egui App",
         options,
-        Box::new(|_cc| Box::new(MyApp::default())),
+        Box::new(|_cc| Box::<MyApp>::default()),
     )
 }
