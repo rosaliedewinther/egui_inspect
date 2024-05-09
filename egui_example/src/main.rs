@@ -35,14 +35,20 @@ impl Default for MyApp {
             code: "Hello\nI\nam\na\nmultiline\nstring".to_owned(),
             _skipped: true,
             unsigned32: 42,
-            strings: vec!{"Bonjour".to_string(),
-                          "Voici une liste de string".to_string(),
-                          "Avec plusieurs strings".to_string()},
+            strings: vec![
+                "Bonjour".to_string(),
+                "Voici une liste de string".to_string(),
+                "Avec plusieurs strings".to_string(),
+            ],
             raw_string: "YetAnotherString",
             float64: 6.0,
             ugly_internal_field_name: 16,
             ugly_internal_field_name_2: Salut(50, 123.45),
-            vector_struct: Vector { x: 10.0, y: 20.0, z: 30.0 },
+            vector_struct: Vector {
+                x: 10.0,
+                y: 20.0,
+                z: 30.0,
+            },
         }
     }
 }
@@ -51,15 +57,14 @@ impl Default for MyApp {
 struct Salut(i32, f32);
 
 #[derive(EguiInspect)]
-struct Vector { 
+struct Vector {
     #[inspect(name = "X axis")]
-    x: f32, 
+    x: f32,
     #[inspect(name = "Y axis")]
-    y: f32, 
+    y: f32,
     #[inspect(name = "Z axis")]
-    z: f32 
+    z: f32,
 }
-
 
 fn custom_bool_inspect(boolean: &mut bool, label: &'static str, ui: &mut egui::Ui) {
     ui.label("C'EST LA GIGA FONCTION CUSTOM WÉ");
@@ -75,13 +80,14 @@ impl eframe::App for MyApp {
             let salut = Salut(1, 2.0);
             salut.inspect("label for tuple struct", ui);
         });
-
-        // Resize the native window to be just the size we need it to be:
-        frame.set_window_size(ctx.used_size());
     }
 }
 
-fn main() {
+fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions::default();
-    eframe::run_native("My egui App", options, Box::new(|_cc| Box::new(MyApp::default())));
+    eframe::run_native(
+        "My egui App",
+        options,
+        Box::new(|_cc| Box::new(MyApp::default())),
+    )
 }
